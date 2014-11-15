@@ -1,4 +1,4 @@
-/.dist-buildwrapper/
+/.dist-buildwrapper
 /.settings/
 /.project
 /cabal.sandbox.config
