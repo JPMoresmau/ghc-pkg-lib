@@ -1,0 +1,23 @@
+name:           ghc-pkg-lib
+version:        0.1
+cabal-version:  >=1.2
+build-type:     Simple
+author:         Thiago Arrais, JP Moresmau
+maintainer:     jp@moresmau.fr
+license:        BSD3
+license-file:   LICENSE
+copyright:      (c) Thiago Arrais 2009
+stability:      stable
+synopsis:       Provide library support for ghc-pkg information
+
+library
+  hs-source-dirs:  src
+  build-depends:   
+                   base >= 4,
+                   ghc-paths >=0.1.0 && <0.2,
+                   filepath >=1.3.0 && <1.4,
+                   directory >=1.2.1 && <1.3,
+                   Cabal >=1.18.1 && <1.19
+  ghc-options:     -Wall
+  exposed-modules: Language.Haskell.Packages
+
