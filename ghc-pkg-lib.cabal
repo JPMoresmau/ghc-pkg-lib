@@ -1,6 +1,6 @@
 name:           ghc-pkg-lib
-version:        0.1
-cabal-version:  >=1.6
+version:        0.2
+cabal-version:  >=1.20
 build-type:     Simple
 author:         Thiago Arrais, JP Moresmau
 maintainer:     jp@moresmau.fr
@@ -14,15 +14,16 @@ category:       Development
 homepage:       https://github.com/JPMoresmau/ghc-pkg-lib
 
 library
-  hs-source-dirs:  src
+  hs-source-dirs:   src
   build-depends:   
-                   base < 5,
-                   ghc-paths >=0.1.0 && <0.2,
-                   filepath >=1.3.0 && <1.4,
-                   directory >=1.2.1 && <1.3,
-                   Cabal >=1.18.1 && <1.19
-  ghc-options:     -Wall
-  exposed-modules: Language.Haskell.Packages
+                    base < 5,
+                    ghc-paths >=0.1.0,
+                    filepath >=1.3.0,
+                    directory >=1.2.1,
+                    Cabal >=1.18
+  ghc-options:      -Wall
+  exposed-modules:  Language.Haskell.Packages
+  default-language: Haskell98
 
 source-repository head
   type:     git
