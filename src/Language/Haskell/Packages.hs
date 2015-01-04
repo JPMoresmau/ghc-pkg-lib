@@ -15,6 +15,7 @@ module Language.Haskell.Packages ( getPkgInfos ) where
 
 import Prelude hiding (Maybe)
 import qualified System.Info
+import qualified Config
 import Control.Applicative
 import Data.List
 import Data.Maybe
@@ -71,7 +72,7 @@ getPkgInfos msandbox=
     currentOS = System.Info.os
 
     ghcVersion :: String
-    ghcVersion = TOOL_VERSION_ghc
+    ghcVersion = Config.cProjectVersion
   in do
     -- Get the global package configuration database:
     global_conf <- do
