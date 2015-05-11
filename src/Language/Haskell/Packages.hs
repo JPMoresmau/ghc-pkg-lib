@@ -3,11 +3,11 @@
 -- Module      : Language.Haskell.Packages
 -- Copyright   : (c) Thiago Arrais 2009
 -- License     : BSD3
--- 
+--
 -- Maintainer  : jpmoresmau@gmail.com
 -- Stability   : beta
 -- Portability : portable
--- 
+--
 -- Packages from packages databases (global, user).
 -- see <http://stackoverflow.com/questions/1522104/how-to-programmatically-retrieve-ghc-package-information>
 module Language.Haskell.Packages ( getPkgInfos ) where
@@ -22,6 +22,7 @@ import Data.Maybe
 import Control.Monad
 import Distribution.InstalledPackageInfo
 import Distribution.Text
+import Distribution.ModuleName
 import System.Directory
 import System.Environment (getEnv)
 import System.FilePath
@@ -33,7 +34,11 @@ import GHC.Paths
 import qualified Control.Exception as Exception
 
 -- This was borrowed from the ghc-pkg source:
+#if MIN_VERSION_Cabal(1,22,0)
+type InstalledPackageInfoString = InstalledPackageInfo_ ModuleName
+#else
 type InstalledPackageInfoString = InstalledPackageInfo_ String
+#endif
 
 -- | Types of cabal package databases
 data CabalPkgDBType =
@@ -48,7 +53,7 @@ type InstalledPackagesList = [(FilePath, [InstalledPackageInfo])]
 -- databases, mimicking the functionality of ghc-pkg.
 getPkgInfos :: Maybe FilePath   -- ^ the path to the cabal sandbox if any
         -> IO InstalledPackagesList
-getPkgInfos msandbox= 
+getPkgInfos msandbox=
   let
     -- | Test for package database's presence in a given directory
     -- NB: The directory is returned for later scanning by listConf,
@@ -61,10 +66,10 @@ getPkgInfos msandbox=
         path_sd_dir= dir </> ("packages-" ++ ghcVersion ++ ".conf")
         -- cabal sandboxes
         path_ghc_dir= dir </> currentArch ++ '-' : currentOS ++ "-ghc-" ++ ghcVersion ++ "-packages.conf.d"
-                           
+
       in join . listToMaybe . filter isJust <$>
            mapM readIfExists [PkgDirectory path_dir,PkgFile path_file,PkgDirectory path_sd_dir,PkgDirectory path_ghc_dir]
-       
+
     currentArch :: String
     currentArch = System.Info.arch
 
@@ -87,7 +92,7 @@ getPkgInfos msandbox=
             e_appdir <- Exc.try $ getAppUserDataDirectory "ghc"
             case e_appdir of
                     Left (_::Exc.IOException) -> return []
-                    Right appdir -> do 
+                    Right appdir -> do
                        let subdir
                              = currentArch ++ '-' : currentOS ++ '-' : ghcVersion
                            dir = appdir </> subdir
@@ -114,13 +119,13 @@ getPkgInfos msandbox=
 readIfExists :: CabalPkgDBType -> IO (Maybe InstalledPackagesList)
 readIfExists p@(PkgDirectory path_dir) = do
         exists_dir <- doesDirectoryExist path_dir
-        if exists_dir 
-          then Just <$> readContents p 
+        if exists_dir
+          then Just <$> readContents p
           else return Nothing
 readIfExists p@(PkgFile path_dir) = do
         exists_dir <- doesFileExist path_dir
-        if exists_dir 
-          then Just <$> readContents p 
+        if exists_dir
+          then Just <$> readContents p
           else return Nothing
 
 -- | Read the contents of the given directory, searching for ".conf" files, and parse the
@@ -130,7 +135,7 @@ readContents :: CabalPkgDBType                   -- ^ The package database
                 -> IO InstalledPackagesList      -- ^ Installed packages
 
 readContents pkgdb =
-  let 
+  let
     -- | List package configuration files that might live in the given directory
     listConf :: FilePath -> IO [FilePath]
     listConf dbdir = do
@@ -158,7 +163,7 @@ readContents pkgdb =
 #else
       hGetContents h
 #endif
-      
+
 
     -- | This function was lifted directly from ghc-pkg. Its sole purpose is
     -- parsing an input package description string and producing an
@@ -169,7 +174,11 @@ readContents pkgdb =
                                          hiddenModules = h })) =
             pkgconf{ exposedModules = convert e,
                      hiddenModules  = convert h }
+#if MIN_VERSION_Cabal(1,22,0)
+        where convert = map id
+#else
         where convert = mapMaybe simpleParse
+#endif
 
     -- | Utility function that just flips the arguments to Control.Exception.catch
     catchError :: IO a -> (String -> IO a) -> IO a
@@ -181,7 +190,7 @@ readContents pkgdb =
     -- pairs.
     pkgInfoReader ::  FilePath
                       -> IO [InstalledPackageInfo]
-    pkgInfoReader f = 
+    pkgInfoReader f =
       Exc.catch (
          do
               pkgStr <- readUTF8File f
@@ -192,7 +201,7 @@ readContents pkgdb =
                         print err
                         return [emptyInstalledPackageInfo]
         ) (\(_::Exc.IOException)->return [emptyInstalledPackageInfo])
-        
+
   in case pkgdb of
       (PkgDirectory pkgdbDir) -> do
         confs <- listConf pkgdbDir
@@ -212,9 +221,9 @@ readContents pkgdb =
 getLibDir :: String
 getLibDir = libdir
 
--- | read an object from a String, with a given error message if it fails 
+-- | read an object from a String, with a given error message if it fails
 readObj :: Read a=> String -> String -> a
 readObj msg s=let parses=reads s -- :: [(a,String)]
-        in if null parses 
+        in if null parses
                 then error (msg ++ ": " ++ s ++ ".")
-                else fst $ head parses 
+                else fst $ head parses
