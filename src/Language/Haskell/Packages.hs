@@ -16,13 +16,19 @@ module Language.Haskell.Packages ( getPkgInfos ) where
 import Prelude hiding (Maybe)
 import qualified System.Info
 import qualified Config
-import Control.Applicative
+
 import Data.List
 import Data.Maybe
 import Control.Monad
 import Distribution.InstalledPackageInfo
-import Distribution.Text
+#if MIN_VERSION_Cabal(1,22,0)
 import Distribution.ModuleName
+#else
+import Control.Applicative
+import Distribution.Text
+#endif
+
+
 import System.Directory
 import System.Environment (getEnv)
 import System.FilePath
