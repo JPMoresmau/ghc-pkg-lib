@@ -1,3 +1,4 @@
+-- | Test the behavior
 module Main where
 
 import Language.Haskell.Packages
@@ -18,10 +19,11 @@ import System.Directory
 import System.FilePath
 import System.Process
 
-
+-- | entry point
 main :: IO()
 main = defaultMain tests
 
+-- | test definitions
 tests :: TestTree
 tests = testGroup "ghc-pkg-lib Tests"
     [ testCase "No Sandbox" $ do
@@ -56,12 +58,15 @@ tests = testGroup "ghc-pkg-lib Tests"
         ls @=? names
     ]
 
+-- | get the package names from the list
 extractNames :: [(FilePath, [InstalledPackageInfo_ m])] -> [(FilePath, [String])]
 extractNames = sortList . map (\(a,b)->(a,map (display . sourcePackageId) b))
 
+-- | sort list by db and package
 sortList :: [(FilePath,[String])] -> [(FilePath,[String])]
 sortList = map (\(a,b)->(a,sort b)) . sortBy (comparing fst)
 
+-- | execute command to list packages
 execList :: String -> [String] -> IO [(FilePath,[String])]
 execList cmd args = do
     output<-readProcess cmd args "" -- this is strict
@@ -69,6 +74,7 @@ execList cmd args = do
         ps = foldl' parse [] ls
     return $ sortList ps
     where
+        -- parse result
         parse :: [(FilePath,[String])] -> String -> [(FilePath,[String])]
         parse res "" = res -- empty line
         parse [] (' ':_)  = [] -- no current db
