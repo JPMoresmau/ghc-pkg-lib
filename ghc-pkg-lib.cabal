@@ -13,9 +13,10 @@ description:    A library that lists the installed packages in a given sandbox a
 category:       Development
 homepage:       https://github.com/JPMoresmau/ghc-pkg-lib
 
-flag lib-Werror
-  default: False
-  manual: True
+
+--flag lib-Werror
+--  default: False
+--  manual: True
 
 library
   hs-source-dirs:   src
@@ -30,9 +31,31 @@ library
   exposed-modules:  Language.Haskell.Packages
   default-language: Haskell98
 
-  if flag(lib-Werror)
-    ghc-options: -Werror
+--  if flag(lib-Werror)
+--    ghc-options: -Werror
 
 source-repository head
   type:     git
   location: git@github.com:JPMoresmau/ghc-pkg-lib.git
+
+test-suite ghc-pkg-lib-test
+    type: exitcode-stdio-1.0
+    main-is: Main.hs
+    build-depends:
+        base >=4,
+        tasty >0.10,
+        tasty-hunit -any,
+        HUnit -any,
+        process,
+        ghc-paths >=0.1.0,
+        filepath,
+        directory,
+        ghc,
+        Cabal >=1.14,
+        time
+    hs-source-dirs: test src
+    other-modules:
+        Language.Haskell.Packages
+    ghc-options: -Wall -O2 -rtsopts -fprof-auto
+    default-language: Haskell98
+
