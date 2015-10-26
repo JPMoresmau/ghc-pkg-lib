@@ -3,6 +3,8 @@ module Main where
 
 import Language.Haskell.Packages
 
+import Control.Monad
+
 import Data.Char
 import Data.List
 import Data.Ord
@@ -42,20 +44,22 @@ tests = testGroup "ghc-pkg-lib Tests"
     , testCase "My Sandbox" $ do
         d <- getCurrentDirectory
         let cfg = d </> "cabal.sandbox.config"
-        cfgContents <- readFile cfg
-        let cfgPath = head $ map (drop (length "prefix: ")) $ filter (isPrefixOf "prefix: ") $ map (dropWhile isSpace) $ lines cfgContents
-        t1 <- getCurrentTime
-        pkgs <- getPkgInfos (Just cfgPath)
-        length pkgs @?= 2
-        t2 <- getCurrentTime
-        putStr "getPkgInfos:"
-        print (diffUTCTime t2 t1)
-        ls <- execList "cabal" ["sandbox","hc-pkg","list"]
-        t3 <- getCurrentTime
-        putStr "cabal:"
-        print (diffUTCTime t3 t2)
-        let names = extractNames pkgs
-        ls @=? names
+        ex <- doesFileExist cfg
+        when ex $ do
+            cfgContents <- readFile cfg
+            let cfgPath = head $ map (drop (length "prefix: ")) $ filter (isPrefixOf "prefix: ") $ map (dropWhile isSpace) $ lines cfgContents
+            t1 <- getCurrentTime
+            pkgs <- getPkgInfos (Just cfgPath)
+            length pkgs @?= 2
+            t2 <- getCurrentTime
+            putStr "getPkgInfos:"
+            print (diffUTCTime t2 t1)
+            ls <- execList "cabal" ["sandbox","hc-pkg","list"]
+            t3 <- getCurrentTime
+            putStr "cabal:"
+            print (diffUTCTime t3 t2)
+            let names = extractNames pkgs
+            ls @=? names
     ]
 
 -- | get the package names from the list
